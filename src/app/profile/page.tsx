@@ -17,6 +17,7 @@ export default function ProfilePage() {
   const [records, setRecords] = useState<GameRecord[]>([]);
   const [user, setUser] = useState<{ id: number; username: string } | null>(null);
   const [loading, setLoading] = useState(true);
+  const [checkoutLoading, setCheckoutLoading] = useState(false);
 
   useEffect(() => {
     fetch("/api/auth/me")
@@ -45,6 +46,27 @@ export default function ProfilePage() {
   const handleLogout = async () => {
     await fetch("/api/auth/logout", { method: "POST" });
     router.push("/login");
+  };
+
+  const handleCheckout = async () => {
+    setCheckoutLoading(true);
+    try {
+      const res = await fetch("/api/checkout", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({}),
+      });
+      const data = await res.json();
+      if (data.checkoutUrl) {
+        window.location.href = data.checkoutUrl;
+      } else {
+        alert("创建支付会话失败，请重试");
+      }
+    } catch {
+      alert("网络错误，请重试");
+    } finally {
+      setCheckoutLoading(false);
+    }
   };
 
   if (loading) {
@@ -101,6 +123,26 @@ export default function ProfilePage() {
               <p className="text-[20px] font-bold text-[#1A1A1A]">{records.length}</p>
               <p className="text-[12px] text-gray-400 mt-0.5">总局数</p>
             </div>
+          </div>
+        </div>
+
+        <div className="bg-white rounded-lg p-5 border border-[#E5E5E5] mb-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-[16px] font-medium text-[#1A1A1A]">
+                ⭐ 会员中心
+              </p>
+              <p className="text-[12px] text-gray-400 mt-1">
+                开通会员，享受更多功能
+              </p>
+            </div>
+            <button
+              onClick={handleCheckout}
+              disabled={checkoutLoading}
+              className="bg-gradient-to-r from-[#FF9500] to-[#FF5E3A] text-white text-[14px] font-medium px-5 py-2 rounded-full active:opacity-80 disabled:opacity-50"
+            >
+              {checkoutLoading ? "加载中..." : "升级会员"}
+            </button>
           </div>
         </div>
 

@@ -60,6 +60,48 @@ async function main() {
 
   console.log("game_records 表创建成功");
 
+  await pool.query(`
+    DO $$
+    BEGIN
+      IF NOT EXISTS (
+        SELECT 1 FROM information_schema.columns
+        WHERE table_name = 'users' AND column_name = 'creem_customer_id'
+      ) THEN
+        ALTER TABLE users ADD COLUMN creem_customer_id VARCHAR(255);
+      END IF;
+
+      IF NOT EXISTS (
+        SELECT 1 FROM information_schema.columns
+        WHERE table_name = 'users' AND column_name = 'subscription_status'
+      ) THEN
+        ALTER TABLE users ADD COLUMN subscription_status VARCHAR(50);
+      END IF;
+
+      IF NOT EXISTS (
+        SELECT 1 FROM information_schema.columns
+        WHERE table_name = 'users' AND column_name = 'subscription_id'
+      ) THEN
+        ALTER TABLE users ADD COLUMN subscription_id VARCHAR(255);
+      END IF;
+
+      IF NOT EXISTS (
+        SELECT 1 FROM information_schema.columns
+        WHERE table_name = 'users' AND column_name = 'subscription_product_id'
+      ) THEN
+        ALTER TABLE users ADD COLUMN subscription_product_id VARCHAR(255);
+      END IF;
+
+      IF NOT EXISTS (
+        SELECT 1 FROM information_schema.columns
+        WHERE table_name = 'users' AND column_name = 'subscription_updated_at'
+      ) THEN
+        ALTER TABLE users ADD COLUMN subscription_updated_at TIMESTAMPTZ;
+      END IF;
+    END $$;
+  `);
+
+  console.log("users 支付字段迁移完成");
+
   console.log("开始数据迁移...");
 
   const client = await pool.connect();
